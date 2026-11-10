@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RPsy Reviewer</title>
+<meta name="description" content="Timed board exam practice for the Philippine Psychologist Licensure Examination.">
+<meta name="theme-color" content="#172B36">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RPsy">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F7; --card:#FFFFFF; --ink:#172B36; --muted:#5A6B75; --line:#D5DEE4; --track:#E4EAEE;
+  --assess:#2C6E8F; --abn:#9A3B5C; --couns:#3E7C4F; --pers:#9C6614;
+  --good:#2F7A4A; --good-bg:#E2F1E7; --bad:#A63446; --bad-bg:#F8E3E6; --warn:#9C6614; --focus:#2B59C3;
+  --font:"Atkinson Hyperlegible", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#111C22; --card:#1A2A33; --ink:#E5EDF1; --muted:#9BAAB3; --line:#2C3F4A; --track:#24363F;
+    --assess:#5FA8CC; --abn:#D77C9C; --couns:#74B987; --pers:#D9A54A;
+    --good:#6CC48C; --good-bg:#1D3A2A; --bad:#EE8595; --bad-bg:#3D2128; --warn:#D9A54A; --focus:#8FB0FF;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 18px 56px}
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:12px 18px;max-width:560px;margin:0 auto}
+.brand{background:none;border:0;padding:0;font-weight:700;font-size:20px;letter-spacing:-0.01em;display:flex;gap:10px;align-items:center}
+.brand .bars{display:flex;gap:2px}
+.brand .bars i{height:10px;border-radius:2px;display:block}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:10px;width:40px;height:40px;display:grid;place-items:center}
+.iconbtn svg{width:20px;height:20px}
+h1{font-size:28px;line-height:1.15;margin:14px 0 6px;letter-spacing:-0.02em}
+h2{font-size:19px;margin:28px 0 10px}
+h3{font-size:17px;margin:0}
+p{margin:0 0 12px}
+.muted{color:var(--muted)} .small{font-size:15px} .tiny{font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stack>*+*{margin-top:12px}
+.num{font-variant-numeric:tabular-nums}
+.primary{display:block;width:100%;border:0;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:700;font-size:17px;padding:15px 18px;text-align:center}
+.primary:disabled{opacity:.45}
+.secondary{display:block;width:100%;border:1px solid var(--line);border-radius:14px;background:var(--card);font-weight:700;padding:13px 18px;text-align:center}
+.linkbtn{background:none;border:0;padding:0;color:var(--focus);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* Readiness */
+.ready{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.ready .big{font-size:46px;font-weight:700;letter-spacing:-0.03em;line-height:1}
+.ready .lbl{font-weight:700}
+.stacked{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--track);margin-top:14px;gap:2px}
+.stacked span{display:block;height:100%;position:relative;background:var(--track)}
+.stacked span i{position:absolute;inset:0 auto 0 0;display:block}
+.rule{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.rule div{background:var(--bg);border-radius:10px;padding:10px 12px}
+.rule b{display:block;font-size:20px}
+.rule span{font-size:13px;color:var(--muted)}
+
+/* Subject cards: segmented topic meters are the signature element */
+.subj{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:10px}
+.subj .top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.subj .pct{font-size:24px;font-weight:700;letter-spacing:-0.02em}
+.subj .sub{font-size:14px;color:var(--muted);margin-top:2px}
+.segs{display:flex;gap:4px;margin:12px 0 8px}
+.segs span{flex:1;height:10px;border-radius:3px;background:var(--track);overflow:hidden;position:relative}
+.segs span i{position:absolute;inset:0 auto 0 0;display:block;border-radius:3px}
+.subj .foot{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--muted)}
+.lvl{font-weight:700}
+.suggest{border-left:4px solid var(--ink);background:var(--card);border-radius:4px 14px 14px 4px;padding:14px 16px;margin-top:16px}
+.suggest p{margin:4px 0 12px}
+
+/* Topic list */
+.topics{list-style:none;margin:0;padding:0}
+.topics li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:10px}
+.topics .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.topics .bar{height:8px;border-radius:4px;background:var(--track);margin:10px 0 8px;overflow:hidden}
+.topics .bar i{display:block;height:100%;border-radius:4px}
+.topics p{font-size:15px;color:var(--muted);margin:6px 0 10px}
+.chipbtn{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 14px;font-weight:700;font-size:15px}
+
+/* Quiz */
+.qtop{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.dots{display:flex;gap:6px}
+.dots i{width:26px;height:6px;border-radius:3px;background:var(--track);display:block}
+.dots i.done{background:var(--muted)} .dots i.now{background:var(--ink)}
+.dots i.ok{background:var(--good)} .dots i.no{background:var(--bad)}
+.clock{font-weight:700;font-size:17px}
+.clock.low{color:var(--bad)}
+.tbar{height:4px;background:var(--track);border-radius:2px;margin:10px 0 18px;overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--ink);transform-origin:left;transition:transform .25s linear}
+.tbar.low i{background:var(--bad)}
+.qmeta{font-size:14px;font-weight:700;margin-bottom:6px}
+.stem{font-size:19px;line-height:1.5;margin:0 0 16px}
+.opts{display:grid;gap:9px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;font-size:17px;line-height:1.4}
+.opt .k{flex:0 0 28px;height:28px;border-radius:8px;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:15px}
+.opt[aria-pressed="true"]{border-color:var(--ink)}
+.opt[aria-pressed="true"] .k{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--good);background:var(--good-bg)} .opt.ok .k{background:var(--good);border-color:var(--good);color:#fff}
+.opt.no{border-color:var(--bad);background:var(--bad-bg)} .opt.no .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt .why{display:block;font-size:14px;color:var(--muted);margin-top:4px}
+.explain{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px}
+.explain b{display:block;margin-bottom:4px}
+.actions{margin-top:18px}
+
+/* Results */
+.score{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.score .big{font-size:44px;font-weight:700;letter-spacing:-0.03em}
+.delta{list-style:none;margin:12px 0 0;padding:0}
+.delta li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.delta .up{color:var(--good);font-weight:700} .delta .down{color:var(--bad);font-weight:700}
+details.rev{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
+details.rev summary{cursor:pointer;font-weight:700;list-style:none;display:flex;gap:10px}
+details.rev summary::-webkit-details-marker{display:none}
+details.rev .mark{flex:0 0 auto}
+.src{list-style:none;padding:0;margin:8px 0 0}
+.src li{margin:6px 0;font-size:15px;overflow-wrap:anywhere}
+.gsearch{width:100%;border:0;height:72px;margin-top:8px;background:transparent}
+
+/* Loading and errors */
+.loading{text-align:center;padding:64px 10px}
+.pulse{display:flex;gap:4px;justify-content:center;margin-bottom:18px}
+.pulse i{width:34px;height:10px;border-radius:3px;background:var(--track);animation:p 1.4s infinite ease-in-out}
+.pulse i:nth-child(1){--c:var(--assess)} .pulse i:nth-child(2){--c:var(--abn);animation-delay:.15s} .pulse i:nth-child(3){--c:var(--couns);animation-delay:.3s} .pulse i:nth-child(4){--c:var(--pers);animation-delay:.45s}
+@keyframes p{0%,100%{background:var(--track)}50%{background:var(--c)}}
+@media (prefers-reduced-motion: reduce){.pulse i{animation:none;background:var(--c)} .tbar i{transition:none}}
+.error{background:var(--bad-bg);border-radius:12px;padding:14px;margin-top:16px}
+.error b{display:block;margin-bottom:4px}
+
+/* Settings */
+dialog{border:0;border-radius:18px;padding:0;width:min(560px,94vw);max-height:90vh;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(15,25,32,.55)}
+.dlg{padding:20px}
+.dlg h2{margin-top:0}
+label.f{display:block;font-weight:700;margin:16px 0 6px}
+input[type=password],input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg)}
+textarea{min-height:90px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+.switch input{width:22px;height:22px;flex:0 0 auto}
+.status{font-size:15px;margin-top:8px;color:var(--muted)}
+.status.ok{color:var(--good)} .status.bad{color:var(--bad)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;font-size:15px;z-index:30;max-width:90vw;text-align:center}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header class="bar">
+  <button class="brand" id="homeBtn" aria-label="RPsy Reviewer home">
+    <span class="bars" aria-hidden="true"><i style="width:15px;background:var(--assess)"></i><i style="width:12px;background:var(--abn)"></i><i style="width:12px;background:var(--couns)"></i><i style="width:10px;background:var(--pers)"></i></span>
+    RPsy Reviewer
+  </button>
+  <button class="iconbtn" id="settingsBtn" aria-label="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<dialog id="settings" aria-labelledby="setTitle">
+  <form method="dialog" class="dlg" id="setForm">
+    <h2 id="setTitle">Settings</h2>
+    <p class="small muted">Questions are written by Google Gemini with your own free API key. The key stays on this phone and is sent only to Google.</p>
+    <label class="f" for="keyInput">Gemini API key</label>
+    <input type="password" id="keyInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your key">
+    <p class="tiny muted" style="margin-top:6px">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. You can reuse the key from Dx Rounds.</p>
+    <button type="button" class="secondary" id="testKey">Check key and load models</button>
+    <div class="status" id="keyStatus" role="status"></div>
+    <label class="f" for="modelSelect">Model</label>
+    <select id="modelSelect"></select>
+
+    <label class="f" for="timerSel">Timer per question</label>
+    <select id="timerSel">
+      <option value="board">Board pace (based on items per 3-hour paper)</option>
+      <option value="60">60 seconds</option>
+      <option value="90">90 seconds</option>
+      <option value="off">No timer</option>
+    </select>
+
+    <label class="f" for="modeSel">When to show answers</label>
+    <select id="modeSel">
+      <option value="exam">After all 5 questions, like the board exam</option>
+      <option value="learn">After each question</option>
+    </select>
+
+    <div class="switch">
+      <label for="searchToggle"><b>Check facts on the web</b><br><span class="tiny muted">Gemini searches Google for current laws, guidelines and terms before writing. Slower, and uses more of your free quota.</span></label>
+      <input type="checkbox" id="searchToggle">
+    </div>
+
+    <div class="actions stack">
+      <button class="primary" value="save">Save settings</button>
+    </div>
+
+    <h2 style="margin-top:28px">Backup</h2>
+    <p class="small muted">Your progress is saved on this phone only. Copy a backup now and then, and keep it in your Notes app.</p>
+    <div class="stack">
+      <button type="button" class="secondary" id="copyBackup">Copy backup code</button>
+      <textarea id="restoreBox" placeholder="Paste a backup code here to restore" aria-label="Backup code to restore"></textarea>
+      <button type="button" class="secondary" id="restoreBtn">Restore from backup</button>
+      <button type="button" class="secondary" id="resetBtn">Reset all progress</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+"use strict";
+/* ================= Syllabus (2023 table of specifications) ================= */
+const SUBJECTS = [
+  { id:"assess", name:"Advanced Psychological Assessment", short:"Assessment", weight:30, items:150, color:"var(--assess)",
+    topics:[
+      { id:"psychometrics", name:"Psychometric foundations and test evaluation", desc:"Reliability, validity, norms, item response theory and test bias." },
+      { id:"interview", name:"Clinical interviewing and behavioral observation", desc:"Structured and semi-structured clinical interviews, mental status examination and intake assessment." },
+      { id:"battery", name:"Test battery selection and administration", desc:"Choosing cognitive, neuropsychological, projective and objective personality measures for a referral question." },
+      { id:"integration", name:"Scoring, integration and interpretation", desc:"Synthesizing tests, interviews and collateral records and resolving clinical discrepancies." },
+      { id:"report", name:"Psychological report writing and feedback", desc:"Communicating findings to clients, families and multidisciplinary teams ethically." },
+      { id:"assess_ethics", name:"Cultural and ethical considerations in assessment", desc:"Adapting assessment for Filipino clients, test security, informed consent, RA 10029 and the Data Privacy Act (RA 10173)." }
+    ]},
+  { id:"abn", name:"Advanced Abnormal Psychology", short:"Abnormal", weight:25, items:130, color:"var(--abn)",
+    topics:[
+      { id:"lifespan", name:"Clinical manifestations across the lifespan", desc:"Signs, symptoms and developmental trajectories of psychopathology in children, adolescents, adults and older adults." },
+      { id:"diagnosis", name:"Diagnostic classification and differential diagnosis", desc:"Applying DSM-5-TR and ICD-11 criteria to distinguish overlapping mental, behavioral and neurodevelopmental disorders." },
+      { id:"etiology", name:"Etiological models and case conceptualization", desc:"Biological, psychological, cognitive-behavioral, psychodynamic and socio-cultural causes of mental illness." },
+      { id:"risk", name:"Risk assessment and crisis evaluation", desc:"Suicide risk, self-harm, violence, trauma and psychiatric emergencies." },
+      { id:"abn_culture", name:"Cultural context and Sikolohiyang Pilipino", desc:"Culture-bound syndromes, local idioms of distress and socio-environmental stressors in the Philippines." },
+      { id:"abn_ethics", name:"Ethical and legal issues in diagnosis", desc:"Confidentiality, duty to warn or protect, involuntary admission and the Philippine Mental Health Act (RA 11036)." }
+    ]},
+  { id:"couns", name:"Psychological Counseling and Psychotherapy", short:"Counseling", weight:25, items:130, color:"var(--couns)",
+    topics:[
+      { id:"models", name:"Major theoretical tenets and models", desc:"Psychoanalytic, psychodynamic, cognitive, behavioral, humanistic, existential, constructivist and systemic approaches." },
+      { id:"change", name:"Theories of change and human behavior", desc:"How distress develops and resolves under each therapeutic framework." },
+      { id:"technique", name:"Clinical application and technique selection", desc:"Matching evidence-based interventions to client concerns and psychological dysfunctions." },
+      { id:"planning", name:"Treatment planning and case management", desc:"Goals, progress monitoring, resistance, transference and termination." },
+      { id:"special", name:"Specialized interventions and crisis management", desc:"Trauma-informed care, grief counseling, family and couples therapy, group therapy and suicide intervention." },
+      { id:"alliance", name:"Therapeutic alliance and professional ethics", desc:"Boundaries, dual relationships, competence, supervision and culturally responsive therapy for Filipinos." }
+    ]},
+  { id:"pers", name:"Advanced Theories of Personality", short:"Personality", weight:20, items:100, color:"var(--pers)",
+    topics:[
+      { id:"frameworks", name:"Classical and contemporary frameworks", desc:"Psychoanalytic, neo-analytic, trait, biological and evolutionary, behavioral, social-cognitive and humanistic-existential theories." },
+      { id:"compare", name:"Comparative evaluation of theories", desc:"Free will vs determinism, nature vs nurture, and the empirical research supporting each model." },
+      { id:"development", name:"Personality development and dynamics", desc:"Personality structures, defense mechanisms, self-concept and motivation across adulthood." },
+      { id:"pathology", name:"Application to psychopathology and growth", desc:"Linking personality constructs to maladaptive patterns, resilience and well-being." },
+      { id:"pers_culture", name:"Socio-cultural and indigenous perspectives", desc:"Cross-cultural psychology and Sikolohiyang Pilipino concepts such as kapwa, loob, hiya and pakikisama." }
+    ]}
+];
+const SUBJ = Object.fromEntries(SUBJECTS.map(s => [s.id, s]));
+const TOPIC = {}; SUBJECTS.forEach(s => s.topics.forEach(t => TOPIC[t.id] = Object.assign({ subject:s.id }, t)));
+const SET_SIZE = 5;
+const COVERAGE_TARGET = 20;   // answers per topic before its meter can fill completely
+const LETTERS = ["A","B","C","D"];
+
+/* ================= Storage ================= */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem("rpsy_" + k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("rpsy_" + k, JSON.stringify(v)); }catch(e){ toast("Storage is full. Copy a backup and reset old data."); } }
+};
+const S = {
+  settings: Object.assign({ apiKey:"", model:"", models:[], timer:"board", mode:"exam", search:true }, LS.get("settings", {})),
+  progress: LS.get("progress", {}),   // topicId -> { n, c, ema, concepts:[], last }
+  days: LS.get("days", []),           // study dates (YYYY-MM-DD)
+  mistakes: LS.get("mistakes", [])    // saved missed questions
+};
+// Reuse a key saved by Dx Rounds on the same github.io site
+if (!S.settings.apiKey){
+  try{ const dx = JSON.parse(localStorage.getItem("dxr_settings") || "null");
+    if (dx && dx.apiKey){ S.settings.apiKey = dx.apiKey; S.settings.model = S.settings.model || dx.model || ""; S.settings.models = dx.models || []; S.settings._fromDx = true; }
+  }catch(e){}
+}
+const saveAll = () => { LS.set("settings", S.settings); LS.set("progress", S.progress); LS.set("days", S.days); LS.set("mistakes", S.mistakes.slice(-150)); };
+
+/* ================= Progress model ================= */
+const tp = id => S.progress[id] || { n:0, c:0, ema:0, concepts:[], last:0 };
+function topicExpertise(id){
+  const p = tp(id);
+  if (!p.n) return 0;
+  const coverage = Math.min(1, p.n / COVERAGE_TARGET);
+  return Math.round(100 * coverage * p.ema);
+}
+function subjectStats(sid){
+  const s = SUBJ[sid];
+  let n = 0, c = 0;
+  s.topics.forEach(t => { const p = tp(t.id); n += p.n; c += p.c; });
+  const expertise = Math.round(s.topics.reduce((a, t) => a + topicExpertise(t.id), 0) / s.topics.length);
+  return { n, c, acc: n ? Math.round(100 * c / n) : null, expertise };
+}
+function readiness(){
+  return Math.round(SUBJECTS.reduce((a, s) => a + s.weight * subjectStats(s.id).expertise, 0) / 100);
+}
+function lvlColor(x, c){ return x > 0 ? c : "var(--muted)"; }
+function level(x){ return x >= 75 ? "Board-ready" : x >= 50 ? "Solid" : x >= 25 ? "Building" : x > 0 ? "Starting" : "Not started"; }
+function boardRule(){
+  const st = SUBJECTS.map(s => Object.assign({ s }, subjectStats(s.id)));
+  const ready = st.every(x => x.n >= 10);
+  const gwa = ready ? Math.round(st.reduce((a, x) => a + x.s.weight * x.acc, 0) / 100) : null;
+  const low = ready ? st.reduce((m, x) => x.acc < m.acc ? x : m) : null;
+  return { ready, gwa, low, st };
+}
+function recordAnswer(q, correct){
+  const p = tp(q.topic_id);
+  p.n++; if (correct) p.c++;
+  p.ema = p.n === 1 ? (correct ? 1 : 0) : p.ema + 0.15 * ((correct ? 1 : 0) - p.ema);
+  if (q.concept){ p.concepts = [q.concept, ...p.concepts.filter(x => x.toLowerCase() !== q.concept.toLowerCase())].slice(0, 60); }
+  p.last = Date.now();
+  S.progress[q.topic_id] = p;
+}
+function markStudyDay(){
+  const d = new Date(); const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  if (!S.days.includes(key)) S.days.push(key);
+  S.days = S.days.slice(-400);
+}
+function streak(){
+  const set = new Set(S.days); let n = 0; const d = new Date();
+  const key = x => x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+  if (!set.has(key(d))) d.setDate(d.getDate() - 1); // streak still counts if you haven't studied yet today
+  while (set.has(key(d))){ n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+/* Pick-for-me: weight by exam share and by how much is left to learn */
+function suggestSubject(){
+  let best = null;
+  SUBJECTS.forEach(s => {
+    const st = subjectStats(s.id);
+    const score = s.weight * (1 - st.expertise / 100) * (0.85 + Math.random() * 0.3);
+    if (!best || score > best.score) best = { s, score };
+  });
+  return best.s;
+}
+// Topic plan for a set: favour least-covered, then weakest topics (2 + 2 + 1)
+function planTopics(sid, focus){
+  if (focus) return Array(SET_SIZE).fill(focus);
+  const ts = SUBJ[sid].topics.map(t => ({ id:t.id, n:tp(t.id).n, x:topicExpertise(t.id), r:Math.random() }));
+  ts.sort((a, b) => (a.n >= COVERAGE_TARGET) - (b.n >= COVERAGE_TARGET) || a.x - b.x || a.n - b.n || a.r - b.r);
+  return [ts[0].id, ts[0].id, ts[1].id, ts[1].id, ts[2].id];
+}
+function difficultyFor(id){
+  const x = topicExpertise(id), p = tp(id);
+  if (p.n < 5 || x < 35) return "moderate: understanding and straightforward application";
+  if (x < 65) return "board level: application and analysis, many short clinical vignettes";
+  return "hard board level: close distractors, case vignettes needing integration of two or more concepts";
+}
+function boardSeconds(sid){ return Math.round(180 * 60 / SUBJ[sid].items); }  // 3-hour paper divided by items
+
+/* ================= Helpers ================= */
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+function toast(msg){ const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role","status"); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+function shuffleIdx(n){ const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = s => Math.floor(s / 60) + ":" + String(Math.max(0, s % 60)).padStart(2, "0");
+
+/* ================= Gemini ================= */
+const API = "https://generativelanguage.googleapis.com/v1beta";
+let onProgress = () => {};
+
+async function apiError(res){
+  let msg = "";
+  try{ const j = await res.json(); msg = j.error?.message || ""; }catch(e){}
+  const e = new Error(msg || ("HTTP " + res.status)); e.status = res.status; e.raw = msg;
+  if (res.status === 400 && /api key/i.test(msg)) e.friendly = "Google rejected the API key. Paste it again in Settings.";
+  else if (res.status === 401 || res.status === 403) e.friendly = "This key isn't allowed to use the Gemini API. Create one at aistudio.google.com/apikey.";
+  else if (res.status === 404) e.friendly = "That model isn't available for your key. In Settings, tap “Check key and load models” and pick another.";
+  else if (res.status === 429) e.friendly = "You've used up Gemini's free limit for now. Wait a minute, or pick a Flash-Lite model in Settings.";
+  else if (res.status >= 500) e.friendly = "Gemini stayed busy after several retries, including on a backup model. Wait a few minutes and try again.";
+  return e;
+}
+async function listModels(key){
+  const res = await fetch(API + "/models?pageSize=200", { headers:{ "x-goog-api-key": key } });
+  if (!res.ok) throw await apiError(res);
+  const data = await res.json();
+  const skip = /(image|tts|audio|live|embed|robotics|omni|vision|veo|lyria|imagen|aqa|learnlm|computer|native)/i;
+  const names = (data.models || []).filter(m => {
+    const methods = m.supportedGenerationMethods || m.supportedActions || ["generateContent"];
+    return methods.includes("generateContent") && /gemini/i.test(m.name) && !skip.test(m.name);
+  }).map(m => m.name.replace(/^models\//, ""));
+  const ver = n => { const m = n.match(/gemini-(\d+(?:\.\d+)?)/i); return m ? parseFloat(m[1]) : 0; };
+  const rank = n => /flash-lite/i.test(n) ? 1 : /flash/i.test(n) ? 0 : 2;
+  const unstable = n => /(preview|exp|latest)/i.test(n) ? 1 : 0;
+  return [...new Set(names)].sort((a, b) => rank(a) - rank(b) || unstable(a) - unstable(b) || ver(b) - ver(a) || a.localeCompare(b));
+}
+function fallbackModels(chosen){
+  const score = m => (/flash-lite/i.test(m) ? 0 : /flash/i.test(m) ? 1 : 2) + (/(preview|exp|latest)/i.test(m) ? 0.5 : 0);
+  return (S.settings.models || []).filter(m => m !== chosen).sort((a, b) => score(a) - score(b)).slice(0, 2);
+}
+async function postOnce(model, body){
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 120000);
+  try{
+    const res = await fetch(`${API}/models/${encodeURIComponent(model)}:generateContent`, { method:"POST", signal:ctrl.signal,
+      headers:{ "Content-Type":"application/json", "x-goog-api-key": S.settings.apiKey }, body: JSON.stringify(body) });
+    if (!res.ok) throw await apiError(res);
+    return await res.json();
+  }catch(e){
+    if (e.name === "AbortError"){ const t = new Error("timeout"); t.status = 504; t.raw = "The request took too long and was stopped."; throw t; }
+    if (!e.status && e instanceof TypeError){ const n = new Error("network"); n.status = 0; n.raw = e.message; n.friendly = "Couldn't reach Gemini. Check your internet connection and try again."; throw n; }
+    throw e;
+  }finally{ clearTimeout(timer); }
+}
+function parseJSON(text){
+  let t = String(text || "").trim().replace(/^```(?:json)?/i, "").replace(/```\s*$/, "").trim();
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a >= 0 && b > a) t = t.slice(a, b + 1);
+  return JSON.parse(t);
+}
+/* Returns { data, model, searched, sources, searchHtml } */
+async function generate(prompt, schema, wantSearch){
+  const base = { contents:[{ role:"user", parts:[{ text: prompt }] }] };
+  const variants = [];
+  if (wantSearch) variants.push({ search:true, body:{ tools:[{ google_search:{} }], generationConfig:{ temperature:0.9 } } });
+  variants.push(
+    { body:{ generationConfig:{ temperature:0.9, responseFormat:{ text:{ mimeType:"APPLICATION_JSON", schema } } } } },
+    { body:{ generationConfig:{ temperature:0.9, responseMimeType:"application/json", responseJsonSchema: schema } } },
+    { body:{ generationConfig:{ temperature:0.9, responseMimeType:"application/json" } } },
+    { body:{ generationConfig:{ temperature:0.9 } } }
+  );
+  const models = [S.settings.model, ...fallbackModels(S.settings.model)];
+  let lastErr, searchFailed = false;
+  for (let mi = 0; mi < models.length; mi++){
+    const model = models[mi];
+    if (mi > 0) onProgress(`${models[mi - 1]} is busy. Trying ${model} instead…`);
+    let skipModel = false;
+    for (const v of variants){
+      if (v.search && searchFailed) continue;
+      for (let attempt = 0; attempt < 3; attempt++){
+        try{
+          const data = await postOnce(model, Object.assign({}, base, v.body));
+          const cand = data.candidates?.[0];
+          if (data.promptFeedback?.blockReason || /SAFETY|PROHIBITED|BLOCK/i.test(cand?.finishReason || "")){
+            const e = new Error("blocked"); e.friendly = "Gemini's safety filter blocked this set. Try again."; throw e;
+          }
+          const text = (cand?.content?.parts || []).filter(p => !p.thought).map(p => p.text || "").join("");
+          const out = parseJSON(text);
+          const gm = cand?.groundingMetadata || {};
+          const sources = (gm.groundingChunks || []).map(c => c.web).filter(w => w && w.uri).map(w => ({ uri:w.uri, title:w.title || w.uri }));
+          return { data:out, model, searched: !!v.search, searchFailed, sources, searchHtml: gm.searchEntryPoint?.renderedContent || "" };
+        }catch(err){
+          lastErr = Object.assign(err, { model });
+          if (err.message === "blocked") throw err;
+          if (err instanceof SyntaxError) break;                                                  // unreadable: next format
+          if (v.search && (err.status === 400 || err.status === 429 || err.status === 403)){ searchFailed = true; onProgress("Web search isn't available right now. Writing without it…"); break; }
+          if (err.status === 400 && !/api key|FAILED_PRECONDITION|not available in your country/i.test(err.raw || "")) break;
+          if (err.status === 401 || err.status === 403 || err.status === 400 || err.status === 0) throw err;
+          if (err.status === 404 || err.status === 429){ skipModel = true; break; }
+          if (err.status >= 500){
+            if (attempt < 2){ onProgress(`Gemini is busy. Retrying (${attempt + 2} of 3)…`); await sleep(attempt === 0 ? 3000 : 8000); continue; }
+            if (err.status === 500) break;
+            skipModel = true; break;
+          }
+          throw err;
+        }
+      }
+      if (skipModel) break;
+    }
+  }
+  throw lastErr || new Error("Request failed");
+}
+
+/* ================= Prompt ================= */
+const SET_SCHEMA = {
+  type:"object",
+  properties:{ questions:{ type:"array", minItems:5, maxItems:5, items:{ type:"object", properties:{
+    topic_id:{ type:"string" }, concept:{ type:"string" }, stem:{ type:"string" },
+    options:{ type:"array", items:{ type:"string" }, minItems:4, maxItems:4 },
+    answer_index:{ type:"integer" }, explanation:{ type:"string" },
+    distractor_notes:{ type:"array", items:{ type:"string" }, minItems:4, maxItems:4 },
+    source_hint:{ type:"string" } },
+    required:["topic_id","concept","stem","options","answer_index","explanation","distractor_notes","source_hint"] } } },
+  required:["questions"]
+};
+function buildPrompt(sid, plan, search){
+  const s = SUBJ[sid];
+  const slots = plan.map((id, i) => {
+    const t = TOPIC[id];
+    return `Item ${i + 1}: topic_id "${id}" (${t.name}: ${t.desc}). Difficulty: ${difficultyFor(id)}.`;
+  }).join("\n");
+  const avoid = [...new Set(plan)].map(id => {
+    const c = tp(id).concepts.slice(0, 25);
+    return c.length ? `- ${TOPIC[id].name}: ${c.join("; ")}` : "";
+  }).filter(Boolean).join("\n");
+  return `You write practice items for the Philippine Psychologist Licensure Examination (PRC Board of Psychology), subject "${s.name}" (${s.weight}% of the exam).
+
+Write exactly ${SET_SIZE} four-option multiple-choice items:
+${slots}
+
+Board exam style:
+- One best answer. Stems are concise; at least 2 items are short applied scenarios or clinical vignettes, the rest test understanding of key concepts, theorists, criteria or ethics.
+- Distractors are plausible concepts from the same area, similar in length and form to the answer. Make the wrong options wrong for a specific reason.
+- Never use "all of the above", "none of the above", "both A and B", or refer to option letters, because options are shuffled. Use "EXCEPT" or "NOT" in at most one item, written in capitals.
+- Each item tests a different concept. Do not repeat these concepts that were already covered:
+${avoid || "- (none yet)"}
+
+Accuracy:
+- Base content on DSM-5-TR (2022), ICD-11, standard graduate textbooks, the APA Ethical Principles and Code of Conduct, the Psychological Association of the Philippines (PAP) Code of Ethics, and Philippine laws such as RA 10029 (Philippine Psychology Act of 2009), RA 10173 (Data Privacy Act of 2012) and RA 11036 (Mental Health Act of 2018).
+- Only name theorists, tests, statistics, laws and concepts that really exist, and attribute them correctly. If you are not sure a detail is accurate, write a different item instead.
+${search ? "- Use Google Search to confirm current details (laws, implementing rules, DSM-5-TR changes, test editions) and prefer official sources such as prc.gov.ph, officialgazette.gov.ph, doh.gov.ph, apa.org, who.int and pap.ph." : ""}
+- Sikolohiyang Pilipino concepts (for example kapwa, loob, hiya, pakikisama, pakikiramdam) must follow how Filipino psychologists such as Virgilio Enriquez describe them.
+
+For each item return: "topic_id" (as given), "concept" (2–6 word label), "stem", "options" (4 strings), "answer_index" (0–3), "explanation" (2–4 sentences that teach the concept and why the answer is best), "distractor_notes" (4 short phrases, one per option in the same order, saying why each wrong option is wrong; use "" for the correct option), and "source_hint" (the basis, e.g. "DSM-5-TR, Depressive Disorders" or "RA 11036, Section 4"; no page numbers and no invented citations).
+
+Return only JSON shaped like {"questions":[{"topic_id":"...","concept":"...","stem":"...","options":["...","...","...","..."],"answer_index":0,"explanation":"...","distractor_notes":["","...","...","..."],"source_hint":"..."}]}`;
+}
+function cleanSet(raw, plan){
+  const qs = (raw && Array.isArray(raw.questions) ? raw.questions : []).filter(q =>
+    q && q.stem && Array.isArray(q.options) && q.options.length === 4 && q.options.every(o => String(o).trim()) &&
+    Number.isInteger(q.answer_index) && q.answer_index >= 0 && q.answer_index < 4 &&
+    !/(all|none) of the above|both [a-d] and [a-d]/i.test(q.options.join(" ")));
+  return qs.slice(0, SET_SIZE).map((q, i) => ({
+    topic_id: TOPIC[q.topic_id] ? q.topic_id : plan[i] || plan[0],
+    concept: String(q.concept || "").slice(0, 80), stem: String(q.stem), options: q.options.map(String),
+    answer_index: q.answer_index, explanation: String(q.explanation || ""),
+    distractor_notes: Array.isArray(q.distractor_notes) && q.distractor_notes.length === 4 ? q.distractor_notes.map(String) : ["","","",""],
+    source_hint: String(q.source_hint || "")
+  }));
+}
+
+/* ================= Views ================= */
+let quiz = null, tick = null;
+function stopTimer(){ if (tick){ clearInterval(tick); tick = null; } }
+
+function renderHome(){
+  stopTimer(); quiz = null;
+  const r = readiness(), br = boardRule(), sug = suggestSubject();
+  const totalN = SUBJECTS.reduce((a, s) => a + subjectStats(s.id).n, 0);
+  app.innerHTML = `
+    <h1>Board review, five at a time</h1>
+    <p class="muted small">${totalN ? `${totalN} questions answered. Study streak: ${streak()} ${streak() === 1 ? "day" : "days"}.` : "Answer timed sets of 5. Every set fills the meters for the topics it covers."}</p>
+
+    <div class="card" style="margin-top:14px">
+      <div class="ready">
+        <div class="big num" aria-label="Board readiness ${r} percent">${r}%</div>
+        <div><div class="lbl">Board readiness</div><div class="small muted">Weighted by the exam: Assessment 30%, Abnormal 25%, Counseling 25%, Personality 20%.</div></div>
+      </div>
+      <div class="stacked" aria-hidden="true">${SUBJECTS.map(s => `<span style="flex:${s.weight}"><i style="width:${subjectStats(s.id).expertise}%;background:${s.color}"></i></span>`).join("")}</div>
+      <div class="rule">
+        <div><b class="num">${br.ready ? br.gwa + "%" : "–"}</b><span>Weighted average (pass: 75%)</span></div>
+        <div><b class="num">${br.ready ? br.low.acc + "%" : "–"}</b><span>${br.ready ? "Lowest: " + esc(br.low.s.short) : "Lowest subject"} (min: 60%)</span></div>
+      </div>
+      ${br.ready ? "" : `<p class="tiny muted" style="margin:10px 0 0">The pass check appears once you've answered 10 questions in every subject.</p>`}
+    </div>
+
+    <div class="suggest">
+      <b>Pick for me</b>
+      <p class="small muted">Suggested now: <b style="color:var(--ink)">${esc(sug.name)}</b>, the biggest gap once exam weight is counted.</p>
+      <button class="primary" data-start="${sug.id}">Start 5 questions</button>
+    </div>
+
+    <h2>Subjects</h2>
+    ${SUBJECTS.map(s => { const st = subjectStats(s.id); return `
+      <button class="subj" data-subj="${s.id}" aria-label="${esc(s.name)}, expertise ${st.expertise} percent">
+        <div class="top"><h3>${esc(s.name)}</h3><span class="pct num">${st.expertise}%</span></div>
+        <div class="sub">${s.weight}% of the exam, ${s.items} items</div>
+        <div class="segs" aria-hidden="true">${s.topics.map(t => `<span><i style="width:${topicExpertise(t.id)}%;background:${s.color}"></i></span>`).join("")}</div>
+        <div class="foot"><span class="lvl" style="color:${lvlColor(st.expertise, s.color)}">${level(st.expertise)}</span><span>${st.n} answered</span>${st.acc !== null ? `<span>${st.acc}% correct</span>` : ""}</div>
+      </button>`; }).join("")}
+
+    ${S.mistakes.length ? `<h2>Review mistakes</h2><div class="card"><p class="small">You have <b>${S.mistakes.length}</b> missed ${S.mistakes.length === 1 ? "question" : "questions"} saved. Answer one correctly and it leaves the list. This works offline.</p><button class="secondary" id="mistakesBtn">Review 5 missed questions</button></div>` : ""}
+
+    ${S.settings.apiKey ? "" : `<p class="small muted" style="margin-top:18px">Add your free Gemini key in <button class="linkbtn" id="openSet">Settings</button> to start.</p>`}
+    <p class="tiny muted" style="margin-top:22px">Questions are AI-generated for review. Check anything surprising against your reviewer, the DSM-5-TR and the laws themselves.</p>`;
+  app.querySelectorAll("[data-start]").forEach(b => b.onclick = () => startSet(b.dataset.start));
+  app.querySelectorAll("[data-subj]").forEach(b => b.onclick = () => renderSubject(b.dataset.subj));
+  const mb = $("#mistakesBtn"); if (mb) mb.onclick = startMistakes;
+  const os = $("#openSet"); if (os) os.onclick = openSettings;
+  window.scrollTo(0, 0);
+}
+
+function renderSubject(sid){
+  stopTimer();
+  const s = SUBJ[sid], st = subjectStats(sid);
+  app.innerHTML = `
+    <p style="margin-top:12px"><button class="linkbtn" id="back">All subjects</button></p>
+    <h1>${esc(s.name)}</h1>
+    <p class="muted small">${s.weight}% of the exam, ${s.items} items. Board pace is about ${boardSeconds(sid)} seconds per item.</p>
+    <div class="card">
+      <div class="score"><div><div class="lvl" style="color:${lvlColor(st.expertise, s.color)}">${level(st.expertise)}</div><div class="small muted">${st.n} answered${st.acc !== null ? `, ${st.acc}% correct` : ""}</div></div><div class="big num">${st.expertise}%</div></div>
+      <button class="primary" style="margin-top:12px" data-start="${sid}">Start 5 questions on my weakest topics</button>
+    </div>
+    <h2>Topics</h2>
+    <ul class="topics">${s.topics.map(t => { const p = tp(t.id), x = topicExpertise(t.id); return `
+      <li>
+        <div class="row"><b>${esc(t.name)}</b><span class="num" style="font-weight:700">${x}%</span></div>
+        <div class="bar" aria-hidden="true"><i style="width:${x}%;background:${s.color}"></i></div>
+        <div class="tiny muted">${p.n} answered${p.n ? `, ${Math.round(100 * p.c / p.n)}% correct` : ""}${p.n < COVERAGE_TARGET ? `. ${COVERAGE_TARGET - p.n} more to fill the meter` : ""}</div>
+        <p>${esc(t.desc)}</p>
+        <button class="chipbtn" data-topic="${t.id}">Practice this topic</button>
+      </li>`; }).join("")}</ul>`;
+  $("#back").onclick = renderHome;
+  app.querySelector("[data-start]").onclick = () => startSet(sid);
+  app.querySelectorAll("[data-topic]").forEach(b => b.onclick = () => startSet(sid, b.dataset.topic));
+  window.scrollTo(0, 0);
+}
+
+function renderLoading(sid){
+  app.innerHTML = `<div class="loading" role="status" aria-live="polite">
+    <div class="pulse" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <p><b>Writing 5 questions on ${esc(SUBJ[sid].short)}</b></p>
+    <p class="muted small" id="loadMsg">${S.settings.search ? "Checking current sources first. This can take up to a minute." : "This usually takes 10 to 40 seconds."}</p></div>`;
+}
+function renderError(err, retry){
+  stopTimer();
+  const detail = [err.status ? "HTTP " + err.status : "", err.model || "", err.raw || ""].filter(Boolean).join(", ");
+  app.innerHTML = `<div class="error" role="alert"><b>Couldn't get new questions</b>${esc(err.friendly || err.message || "Something went wrong.")}
+    ${detail ? `<p class="tiny" style="margin:8px 0 0">Details from Google: ${esc(detail)}</p>` : ""}</div>
+    <div class="actions stack"><button class="primary" id="retry">Try again</button><button class="secondary" id="toSet">Open settings</button><button class="secondary" id="toHome">Back to home</button></div>`;
+  $("#retry").onclick = retry; $("#toSet").onclick = openSettings; $("#toHome").onclick = renderHome;
+}
+
+async function startSet(sid, focus){
+  if (!S.settings.apiKey || !S.settings.model){ openSettings(); toast(S.settings.apiKey ? "Check your key and pick a model first" : "Add your Gemini key first"); return; }
+  const plan = planTopics(sid, focus);
+  renderLoading(sid);
+  onProgress = m => { const el = $("#loadMsg"); if (el) el.textContent = m; };
+  try{
+    let res, qs = [];
+    for (let attempt = 0; attempt < 2 && qs.length < 3; attempt++){
+      res = await generate(buildPrompt(sid, plan, S.settings.search), SET_SCHEMA, S.settings.search);
+      qs = cleanSet(res.data, plan);
+    }
+    if (qs.length < 3){ const e = new Error("bad"); e.friendly = "Gemini returned incomplete questions. Try again."; throw e; }
+    if (res.searchFailed) toast("Web check wasn't available, so these were written without it");
+    else if (res.model !== S.settings.model) toast(`Written by ${res.model} because ${S.settings.model} was busy`);
+    beginQuiz({ sid, focus, questions: qs, sources: res.sources, searchHtml: res.searchHtml, searched: res.searched, review:false });
+  }catch(err){ renderError(err, () => startSet(sid, focus)); }
+}
+
+function startMistakes(){
+  const pick = S.mistakes.slice(0, SET_SIZE);
+  if (!pick.length) return renderHome();
+  const sid = TOPIC[pick[0].topic_id]?.subject || "assess";
+  beginQuiz({ sid, questions: pick.map(m => Object.assign({}, m)), sources:[], searchHtml:"", review:true });
+}
+
+function beginQuiz(q){
+  quiz = Object.assign(q, { i:0, answers:[], times:[], orders: q.questions.map(() => shuffleIdx(4)), picked:null, checked:false,
+    before: Object.fromEntries(q.questions.map(x => [x.topic_id, topicExpertise(x.topic_id)])) });
+  renderQuestion();
+}
+
+function secondsFor(q){
+  const t = S.settings.timer;
+  if (t === "off") return 0;
+  if (t === "board") return boardSeconds(TOPIC[q.topic_id]?.subject || quiz.sid);
+  return +t;
+}
+
+function renderQuestion(){
+  stopTimer();
+  const q = quiz.questions[quiz.i], order = quiz.orders[quiz.i];
+  const learn = S.settings.mode === "learn";
+  const s = SUBJ[TOPIC[q.topic_id]?.subject || quiz.sid];
+  const dots = quiz.questions.map((_, k) => {
+    let c = k < quiz.i ? "done" : k === quiz.i ? "now" : "";
+    if (learn && k < quiz.i) c = quiz.answers[k] === quiz.questions[k].answer_index ? "ok" : "no";
+    return `<i class="${c}"></i>`;
+  }).join("");
+  const opts = order.map((orig, pos) => {
+    const sel = quiz.picked === orig;
+    let cls = "opt", why = "";
+    if (quiz.checked){
+      if (orig === q.answer_index) cls += " ok";
+      else if (sel) cls += " no";
+      if (orig !== q.answer_index && q.distractor_notes[orig]) why = `<span class="why">${esc(q.distractor_notes[orig])}</span>`;
+    }
+    return `<button class="${cls}" data-o="${orig}" aria-pressed="${sel}" ${quiz.checked ? "disabled" : ""}><span class="k" aria-hidden="true">${LETTERS[pos]}</span><span>${esc(q.options[orig])}${why}</span></button>`;
+  }).join("");
+  const last = quiz.i === quiz.questions.length - 1;
+  const total = secondsFor(q);
+  app.innerHTML = `
+    <div class="qtop"><div class="dots" aria-label="Question ${quiz.i + 1} of ${quiz.questions.length}">${dots}</div>
+      ${total && !quiz.checked ? `<span class="clock num" id="clock" aria-live="off">${fmt(total)}</span>` : `<span class="tiny muted">${quiz.review ? "Mistake review" : ""}</span>`}</div>
+    <div class="tbar ${total && !quiz.checked ? "" : "hidden"}" id="tbar"><i id="tfill"></i></div>
+    <div class="qmeta" style="color:${s.color}">${esc(s.short)}: ${esc(TOPIC[q.topic_id]?.name || "")}</div>
+    <p class="stem">${esc(q.stem)}</p>
+    <div class="opts" role="group" aria-label="Options">${opts}</div>
+    ${quiz.checked ? `<div class="explain" role="status"><b>${quiz.answers[quiz.i] === q.answer_index ? "Correct" : quiz.answers[quiz.i] === null ? "Time's up" : "Not quite"}</b>${esc(q.explanation)}${q.source_hint ? `<div class="tiny muted" style="margin-top:6px">Basis: ${esc(q.source_hint)}</div>` : ""}</div>` : ""}
+    <div class="actions"><button class="primary" id="go" ${!quiz.checked && quiz.picked === null ? "disabled" : ""}>${
+      quiz.checked ? (last ? "See results" : "Next question") : learn ? "Check answer" : (last ? "Finish set" : "Next question")}</button></div>`;
+
+  app.querySelectorAll("[data-o]").forEach(b => b.onclick = () => {
+    quiz.picked = +b.dataset.o;
+    app.querySelectorAll("[data-o]").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.o === quiz.picked)));
+    $("#go").disabled = false;
+  });
+  $("#go").onclick = () => submit(false);
+
+  if (total && !quiz.checked){
+    const deadline = Date.now() + total * 1000; quiz.started = Date.now();
+    const upd = () => {
+      const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      const c = $("#clock"), f = $("#tfill"), bar = $("#tbar");
+      if (c){ c.textContent = fmt(left); c.classList.toggle("low", left <= 10); }
+      if (f) f.style.transform = `scaleX(${left / total})`;
+      if (bar) bar.classList.toggle("low", left <= 10);
+      if (left <= 0){ stopTimer(); submit(true); }
+    };
+    upd(); tick = setInterval(upd, 250);
+  } else quiz.started = Date.now();
+}
+
+function submit(timedOut){
+  const learn = S.settings.mode === "learn";
+  if (quiz.checked){ // moving on after reviewing in learn mode
+    quiz.checked = false; quiz.picked = null;
+    if (quiz.i < quiz.questions.length - 1){ quiz.i++; renderQuestion(); window.scrollTo(0, 0); } else finishSet();
+    return;
+  }
+  stopTimer();
+  quiz.answers[quiz.i] = timedOut && quiz.picked === null ? null : quiz.picked;
+  quiz.times[quiz.i] = Math.round((Date.now() - quiz.started) / 1000);
+  if (learn){ quiz.checked = true; renderQuestion(); const e = app.querySelector(".explain"); if (e) e.scrollIntoView({ block:"nearest" }); return; }
+  if (timedOut) toast("Time's up for that question");
+  quiz.picked = null;
+  if (quiz.i < quiz.questions.length - 1){ quiz.i++; renderQuestion(); window.scrollTo(0, 0); } else finishSet();
+}
+
+function finishSet(){
+  stopTimer();
+  quiz.questions.forEach((q, k) => {
+    const ok = quiz.answers[k] === q.answer_index;
+    recordAnswer(q, ok);
+    const key = q.stem.slice(0, 120);
+    if (ok) S.mistakes = S.mistakes.filter(m => m.stem.slice(0, 120) !== key);
+    else if (!S.mistakes.some(m => m.stem.slice(0, 120) === key)) S.mistakes.push(Object.assign({}, q, { savedAt: Date.now() }));
+  });
+  if (quiz.review){ // move reviewed-but-still-wrong items to the back of the queue
+    const keys = new Set(quiz.questions.map(q => q.stem.slice(0, 120)));
+    S.mistakes = [...S.mistakes.filter(m => !keys.has(m.stem.slice(0, 120))), ...S.mistakes.filter(m => keys.has(m.stem.slice(0, 120)))];
+  }
+  markStudyDay(); saveAll();
+  renderResults();
+}
+
+function renderResults(){
+  const n = quiz.questions.length, right = quiz.questions.filter((q, k) => quiz.answers[k] === q.answer_index).length;
+  const time = quiz.times.reduce((a, b) => a + (b || 0), 0);
+  const topics = [...new Set(quiz.questions.map(q => q.topic_id))];
+  const s = SUBJ[quiz.sid];
+  app.innerHTML = `
+    <div class="card" style="margin-top:14px">
+      <div class="score"><div><div class="lvl" style="color:${s.color}">${quiz.review ? "Mistake review" : esc(s.short)}</div><div class="small muted">${fmt(time)} total, about ${Math.round(time / n)} seconds per item</div></div>
+      <div class="big num" aria-label="${right} of ${n} correct">${right}/${n}</div></div>
+      <ul class="delta">${topics.map(id => { const b = quiz.before[id], a = topicExpertise(id), d = a - b;
+        return `<li><span>${esc(TOPIC[id].name)}</span><span class="num ${d > 0 ? "up" : d < 0 ? "down" : ""}">${a}% ${d > 0 ? "▲" + d : d < 0 ? "▼" + (-d) : ""}</span></li>`; }).join("")}</ul>
+    </div>
+
+    <h2>Answers and explanations</h2>
+    ${quiz.questions.map((q, k) => { const a = quiz.answers[k], ok = a === q.answer_index;
+      return `<details class="rev" ${ok ? "" : "open"}>
+        <summary><span class="mark" style="color:${ok ? "var(--good)" : "var(--bad)"}">${ok ? "✓" : "×"}</span><span>${k + 1}. ${esc(q.stem.length > 90 ? q.stem.slice(0, 88) + "…" : q.stem)}</span></summary>
+        <p class="small" style="margin-top:10px">${esc(q.stem)}</p>
+        <p class="small"><b>Your answer:</b> ${a === null || a === undefined ? "No answer (time ran out)" : esc(q.options[a])}<br><b>Correct:</b> ${esc(q.options[q.answer_index])}</p>
+        <p class="small">${esc(q.explanation)}</p>
+        ${q.distractor_notes.some(x => x) ? `<ul class="small" style="padding-left:18px;margin:0 0 8px">${q.options.map((o, oi) => oi !== q.answer_index && q.distractor_notes[oi] ? `<li><b>${esc(o)}:</b> ${esc(q.distractor_notes[oi])}</li>` : "").join("")}</ul>` : ""}
+        <p class="tiny muted">${q.concept ? esc(q.concept) : ""}${q.concept && q.source_hint ? ". " : ""}${q.source_hint ? "Basis: " + esc(q.source_hint) : ""}</p>
+      </details>`; }).join("")}
+
+    ${quiz.searched ? `<h2>Checked on the web</h2>
+      ${quiz.sources.length ? `<ul class="src">${quiz.sources.slice(0, 8).map(x => `<li><a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a></li>`).join("")}</ul>` : `<p class="small muted">Gemini had search available but didn't list sources for this set.</p>`}
+      ${quiz.searchHtml ? `<iframe class="gsearch" title="Google Search suggestions" sandbox="allow-popups allow-popups-to-escape-sandbox" id="gs"></iframe>` : ""}` : ""}
+
+    <div class="actions stack">
+      ${quiz.review ? (S.mistakes.length ? `<button class="primary" id="moreMist">Review 5 more mistakes</button>` : "") : `<button class="primary" id="again">Next 5 on ${esc(s.short)}</button>`}
+      <button class="secondary" id="home">Back to home</button>
+    </div>
+    <p class="tiny muted" style="margin-top:18px">AI-generated for review. If an answer looks wrong, check it against your reviewer and the DSM-5-TR before memorising it.</p>`;
+  const gs = $("#gs"); if (gs) gs.srcdoc = `<base target="_blank">${quiz.searchHtml}`;
+  const ag = $("#again"); if (ag) ag.onclick = () => startSet(quiz.sid, quiz.focus);
+  const mm = $("#moreMist"); if (mm) mm.onclick = startMistakes;
+  $("#home").onclick = renderHome;
+  window.scrollTo(0, 0);
+}
+
+/* ================= Settings ================= */
+const dlg = $("#settings");
+function fillModels(list, chosen){
+  const sel = $("#modelSelect"), opts = list.length ? list : (chosen ? [chosen] : []);
+  sel.innerHTML = opts.length ? opts.map(m => `<option value="${esc(m)}" ${m === chosen ? "selected" : ""}>${esc(m)}</option>`).join("") : `<option value="">Check your key to load models</option>`;
+}
+function openSettings(){
+  $("#keyInput").value = S.settings.apiKey || "";
+  fillModels(S.settings.models || [], S.settings.model);
+  $("#timerSel").value = S.settings.timer; $("#modeSel").value = S.settings.mode; $("#searchToggle").checked = !!S.settings.search;
+  const st = $("#keyStatus");
+  st.textContent = S.settings._fromDx ? "Using the key you saved in Dx Rounds." : S.settings.model ? `Using ${S.settings.model}.` : ""; st.className = "status";
+  if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+}
+$("#settingsBtn").onclick = openSettings;
+$("#homeBtn").onclick = () => { if (!quiz || confirm("Leave this set? Answers so far won't be saved.")) renderHome(); };
+$("#testKey").onclick = async () => {
+  const key = $("#keyInput").value.trim(), st = $("#keyStatus");
+  if (!key){ st.textContent = "Paste your key first."; st.className = "status bad"; return; }
+  st.textContent = "Checking…"; st.className = "status";
+  try{
+    const models = await listModels(key);
+    if (!models.length) throw Object.assign(new Error("none"), { friendly:"The key works, but no text models were listed for it." });
+    S.settings.models = models;
+    const keep = models.includes(S.settings.model) ? S.settings.model : models[0];
+    fillModels(models, keep);
+    st.textContent = `Key works. ${models.length} models available; ${keep} selected.`; st.className = "status ok";
+  }catch(err){ st.textContent = err.friendly || ("Couldn't reach Gemini: " + err.message); st.className = "status bad"; }
+};
+$("#setForm").addEventListener("submit", () => {
+  S.settings.apiKey = $("#keyInput").value.trim();
+  S.settings.model = $("#modelSelect").value || S.settings.model;
+  S.settings.timer = $("#timerSel").value; S.settings.mode = $("#modeSel").value; S.settings.search = $("#searchToggle").checked;
+  delete S.settings._fromDx;
+  saveAll(); if (!quiz) renderHome(); toast("Settings saved");
+});
+$("#copyBackup").onclick = async () => {
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify({ v:1, progress:S.progress, days:S.days, mistakes:S.mistakes }))));
+  try{ await navigator.clipboard.writeText(code); toast("Backup copied. Paste it into your Notes app."); }
+  catch(e){ $("#restoreBox").value = code; $("#restoreBox").select(); toast("Select the code in the box and copy it"); }
+};
+$("#restoreBtn").onclick = () => {
+  const code = $("#restoreBox").value.trim(); if (!code) return toast("Paste a backup code first");
+  try{
+    const data = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if (!data || typeof data.progress !== "object") throw new Error("bad");
+    if (!confirm("Replace your current progress with this backup?")) return;
+    S.progress = data.progress; S.days = data.days || []; S.mistakes = data.mistakes || [];
+    saveAll(); $("#restoreBox").value = ""; if (!quiz) renderHome(); toast("Progress restored");
+  }catch(e){ toast("That backup code isn't valid"); }
+};
+$("#resetBtn").onclick = () => {
+  if (!confirm("Delete all progress, streaks and saved mistakes on this phone? This can't be undone.")) return;
+  S.progress = {}; S.days = []; S.mistakes = []; saveAll(); if (!quiz) renderHome(); toast("Progress reset");
+};
+
+/* ================= Start ================= */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+renderHome();
+</script>
+</body>
+</html>
